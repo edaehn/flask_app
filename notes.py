@@ -16,9 +16,7 @@ import os
 import ConfigParser, io
 import string, random
 
-# Defining the directory for storing private keys ========================================
-
-
+# Reading and writing the configuration file =============================================
 config_file="config.ini"
 if os.path.exists(config_file): 
 	with open(config_file) as f:
@@ -131,17 +129,13 @@ class Secrets(keyring.backend.KeyringBackend):
 
 					self._keys[(service, user)] = password
 
-
 		except IOError:
 			print color_it("Cannot find notes.txt","red")
 
 	def clear(self):
 		self._keys.clear()
 		self.update_all()
-		self._public_key, self._private_key=generate_new_key()
-	
-	
-	
+		self._public_key, self._private_key=generate_new_key()	
 	
 	def delete(self, service, user):
 		try:
@@ -169,8 +163,6 @@ class Secrets(keyring.backend.KeyringBackend):
 		try:
 			with open("notes.txt", "wb") as f:
 				for key, value in self._keys.items():
-					#f.write(base64.encodestring(key[0] +":" +key[1]  +":" +value))
-					#print "OK:",key[0] +":" +key[1]  +":" +value+'\n'
 					text=self._public_key.encrypt(key[0] +":" +key[1]  +":" +value, 57)
 					text=base64.b64encode(text[0])
 					f.write(text+'\n')
@@ -201,13 +193,9 @@ class Secrets(keyring.backend.KeyringBackend):
 		self._keys[(service, user)]=password
 		try:
 			with open("notes.txt", "ab") as f:
-				#f.write(base64.encodestring(service+":"+user+":"+password))
-				#print "THIS:",service+":"+user+":"+password+'\n'
 				text=self._public_key.encrypt(service+':'+user+':'+password, 57)
 				text=base64.b64encode(text[0])
 				f.write(text+'\n')
-				#self._public_key.encrypt(service+":"+user+":"+password+"\n", 57)
-				#self._public_key.encrypt(service+":"+user+":"+password+"\n", 57)
 				
 			print "Saved: %s"%(str((service, user)))
 		except Exception, e:
@@ -234,7 +222,7 @@ class Secrets(keyring.backend.KeyringBackend):
 		d['Set a key             		']="notes.py service key password"
 		d['Delete a key             	']="notes.py delete key"
 		d['Delete all keys            	']="notes.py clear"
-		d['Creating new key files       ']="notes.py new"
+		d['Creating new key files       	']="notes.py new"
 		print table(d, "Command line arguments")
 		
 	def show_all(self):
@@ -275,4 +263,7 @@ def main(argv):
 		notes.help()	
 
 if __name__=="__main__":
-	main(sys.argv[1:])
+	if len(sys.argv)==1: 
+		main(["help"])
+	else:
+		main(sys.argv[1:])
