@@ -13,7 +13,7 @@ from base64 import b64decode
 
 import glob
 import os
-import ConfigParser, io
+import ConfigParser, io, shutil
 import string, random
 
 # Reading and writing the configuration file =============================================
@@ -26,6 +26,8 @@ if os.path.exists(config_file):
 else:
     f = open(config_file, 'w')
     config = ConfigParser.ConfigParser()
+    config.add_section('notes')
+    config.set('notes', 'notes_backup_path', './backups')
     config.add_section('keys')
     config.set('keys', 'public_path', './keys')
     config.set('keys', 'private_path', '/Volumes/KEY/keys')
@@ -34,11 +36,14 @@ else:
     config.write(f)
     f.close()
 
+notes_backup_path=config.get('notes', 'notes_backup_path')		
 public_keys_dir=config.get('keys', 'public_path')		
 private_keys_dir=config.get('keys', 'private_path')	
 password_length=int(config.get('passwords', 'length'))	
 print(private_keys_dir)
 
+if not os.path.exists(notes_backup_path):
+	os.makedirs(notes_backup_path)
 if not os.path.exists(public_keys_dir):
 	os.makedirs(public_keys_dir)
 if not os.path.exists(private_keys_dir):
@@ -53,8 +58,13 @@ def color_it(content, style=False):
 # Encryption =============================================================================
 from Crypto.PublicKey import RSA
 
-def generate_new_key():
+def backup():
+	backup_file=notes_backup_path+"/notes_"+get_latest_keys_file_number()+".txt"
+	print backup_file
+	if os.path.exists('./notes.txt'): shutil.copy("./notes.txt", backup_file)
 
+def generate_new_key():
+	backup()
 	private_key = RSA.generate(1024)	
 	public_key = private_key.publickey()
 
@@ -79,6 +89,7 @@ def get_latest_keys_file_number():
 	latest_file = max(list_of_files, key=os.path.getctime)
 	return latest_file.split(".")[1].split("_")[2]
 
+	
 # Printing tables ========================================================================
 def table(dict, title=False, style="greenbg"):
 	print color_it("")
@@ -230,6 +241,10 @@ class Secrets(keyring.backend.KeyringBackend):
 	
 
 def main(argv):
+
+	if argv[0]=="backup" and len(argv)==1:
+		backup()
+		sys.exit(0)
 
 	if argv[0] in ["new", "n"] and len(argv)==1:
 		notes=Secrets(new=True)
