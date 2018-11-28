@@ -47,7 +47,12 @@ if not os.path.exists(notes_backup_path):
 if not os.path.exists(public_keys_dir):
 	os.makedirs(public_keys_dir)
 if not os.path.exists(private_keys_dir):
-	os.makedirs(private_keys_dir)
+	try:
+		os.makedirs(private_keys_dir)
+	except:
+		print "We need a key file. Please provide your path to the key file"
+		private_keys_dir = raw_input("Path to your key file:")
+		sys.exit(0) # we will work on it later
 
 # Styling ================================================================================
 def color_it(content, style=False):
