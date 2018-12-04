@@ -16,44 +16,6 @@ import os
 import ConfigParser, io, shutil
 import string, random
 
-# Reading and writing the configuration file =============================================
-config_file="config.ini"
-if os.path.exists(config_file): 
-	with open(config_file) as f:
-		config_contents = f.read()
-		config = ConfigParser.RawConfigParser(allow_no_value=True)
-		config.readfp(io.BytesIO(config_contents))
-else:
-    f = open(config_file, 'w')
-    config = ConfigParser.ConfigParser()
-    config.add_section('notes')
-    config.set('notes', 'notes_backup_path', './backups')
-    config.add_section('keys')
-    config.set('keys', 'public_path', './keys')
-    config.set('keys', 'private_path', '/Volumes/KEY/keys')
-    config.add_section('passwords')
-    config.set('passwords', 'length', '12')
-    config.write(f)
-    f.close()
-
-notes_backup_path=config.get('notes', 'notes_backup_path')		
-public_keys_dir=config.get('keys', 'public_path')		
-private_keys_dir=config.get('keys', 'private_path')	
-password_length=int(config.get('passwords', 'length'))	
-print(private_keys_dir)
-
-if not os.path.exists(notes_backup_path):
-	os.makedirs(notes_backup_path)
-if not os.path.exists(public_keys_dir):
-	os.makedirs(public_keys_dir)
-if not os.path.exists(private_keys_dir):
-	try:
-		os.makedirs(private_keys_dir)
-	except:
-		print "We need a key file. Please provide your path to the key file"
-		private_keys_dir = raw_input("Path to your key file:")
-		sys.exit(0) # we will work on it later
-
 # Styling ================================================================================
 def color_it(content, style=False):
 	styles={"greenbg":'\33[102m',"red":'\33[91m', "blue":'\33[94m', "bw":'\33[7m', "green":'\33[92m'}
@@ -63,13 +25,16 @@ def color_it(content, style=False):
 # Encryption =============================================================================
 from Crypto.PublicKey import RSA
 
-def backup():
-	backup_file=notes_backup_path+"/notes_"+get_latest_keys_file_number()+".txt"
+def backup(latest_keys_file=False):
+	if not latest_keys_file:
+		latest_keys_file=get_latest_keys_file_number()
+
+	backup_file=notes_backup_path+"/notes_"+latest_keys_file+".txt"
 	print backup_file
 	if os.path.exists('./notes.txt'): shutil.copy("./notes.txt", backup_file)
 
-def generate_new_key():
-	backup()
+def generate_new_key(latest_keys_file=False):
+	backup(latest_keys_file)
 	private_key = RSA.generate(1024)	
 	public_key = private_key.publickey()
 
@@ -96,7 +61,7 @@ def get_latest_keys_file_number():
 
 	
 # Printing tables ========================================================================
-def table(dict, title=False, style="greenbg"):
+def table(dict, title=False, style="greenbg", type='help', masked=False):
 	print color_it("")
 	max_length=0
 	content=""
@@ -104,18 +69,39 @@ def table(dict, title=False, style="greenbg"):
 	for key, val in dict.items():
 		if len(val)+len(key)>max_length:
 			max_length=len(val)+len(key)
+		if masked: val="*"*len(val)
 		content=content+color_it(str(key)+'\t',style)+color_it(val+'\n',style)
 	
 	if content=="": 
 		content=color_it("Empty contents loaded\n", style)
-		devider=color_it("="*35+'\t\n',style)
+		devider=color_it("_"*35+'\t\n',style)
 	else:
-		devider=color_it("="*(max_length*2+1)+'\t\n',style)
-	if title: content=devider+color_it(title+'\n',style)+devider+content+devider
-	else: content=devider+content+devider
+		devider=color_it("_"*(max_length*2+1)+'\t\n',style)
+	
+	if type=='info':
+		content=color_it(content,"blue")
+	else:
+		if title: content=devider+color_it(title+'\n',style)+devider+content+devider
+		else: content=devider+content+devider
 	return content
 	
 
+# Reading and writing the configuration file =============================================
+
+def write_config(path='/Volumes/KEY/keys'):
+    f = open(config_file, 'w')
+    config = ConfigParser.ConfigParser()
+    config.add_section('notes')
+    config.set('notes', 'notes_backup_path', './backups')
+    config.add_section('keys')
+    config.set('keys', 'public_path', './keys')
+    config.set('keys', 'private_path', path)
+    config.add_section('passwords')
+    config.set('passwords', 'length', '12')
+    config.write(f)
+    f.close()
+    return
+ 
 class Secrets(keyring.backend.KeyringBackend):
 	_keys={}
 	_links={"google":"https:accounts.google.com"}
@@ -241,8 +227,63 @@ class Secrets(keyring.backend.KeyringBackend):
 		d['Creating new key files       	']="notes.py new"
 		print table(d, "Command line arguments")
 		
+		d={"Note": "Please use backslash \\ before when including special characters & and ! into your passwords."}
+		print table(d, "Comment", type='info')
+		
 	def show_all(self):
-		print table(self._keys, "Keys stored")
+		print table(self._keys, "Keys stored", masked=True)
+   
+config_file="config.ini"
+if os.path.exists(config_file): 
+	with open(config_file) as f:
+		config_contents = f.read()
+		config = ConfigParser.RawConfigParser(allow_no_value=True)
+		config.readfp(io.BytesIO(config_contents))
+else:
+    write_config('/Volumes/KEY/keys')
+
+notes_backup_path=config.get('notes', 'notes_backup_path')		
+public_keys_dir=config.get('keys', 'public_path')		
+private_keys_dir=config.get('keys', 'private_path')	
+password_length=int(config.get('passwords', 'length'))	
+print(private_keys_dir)
+
+if not os.path.exists(notes_backup_path):
+	os.makedirs(notes_backup_path)
+if not os.path.exists(public_keys_dir):
+	os.makedirs(public_keys_dir)
+
+count=3
+while (not os.path.exists(private_keys_dir)) and count>0:
+	count=-1
+	try:
+		os.makedirs(private_keys_dir)
+	except:
+		print "We need a key file. The defined in config.ini path %s does not exist. Please provide your path to the key file."%private_keys_dir
+		private_keys_dir = raw_input("Path to your key file:")
+		write_config(path=private_keys_dir)
+		#sys.exit(0) # we will work on it later
+
+if not os.path.exists(private_keys_dir):
+	print "The path %s does not exist"%private_keys_dir
+	sys.exit(0)
+	
+if len(os.listdir(private_keys_dir)) == 0:
+	yes = raw_input("Path to the private keys does not exist. \
+		Do you need to create a new repository? When yes, we create a \
+		new repository, and the old repository will be backed up. \
+		Your response [yes/no]: ")
+	if yes=="yes": 
+		generate_new_key("backup")
+		notes=Secrets(new=True)
+		notes.clear()
+
+	else: 
+		print "Please find your keys path for the next use. Thanks."
+		sys.exit(0)
+			
+
+
 	
 
 def main(argv):
