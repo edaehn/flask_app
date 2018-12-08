@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1> {{ title }}</h1>
+	<table>
+     {% for note in notes %}
+     	<tr>
+       	<td><strong>{{note.category }}</strong></td><td>{{note.note }}</td>
+       	</tr>
+    {% endfor %}
+    </table>
+{% endblock %}

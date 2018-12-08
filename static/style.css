@@ -1,0 +1,55 @@
+html {
+	background-color: LightGreen;
+}
+.contents {
+	padding: 1.5em;
+}
+body, input, label {
+	font-size: 1em;
+	font: Helvetica;
+	background-color: White;
+}
+a {
+	padding-right: 4em;
+	padding-left: 0.3em;
+	font-size: 1.25em;
+	font: Tahoma;
+}
+a:visited {
+	color: Black;
+}
+a:active {
+	color: Red;
+}
+p, li, ul {
+	line-height:1.25em;
+	font-size: 1em;
+}
+.button {
+	margin: 0.3em auto;
+	background-color: DarkSeaGreen;
+	border-radius: 4px;
+
+} 
+.button:hover {
+	background-color: LightGreen;
+}
+
+form {
+	background-color: Lavender;
+	width: 60%;
+	padding:1em;
+	border-radius: 4px;
+}
+
+label {
+	background-color: Lavender;
+}
+
+.navigation {
+	height: 2em;
+	border-bottom: 1px solid DarkSeaGreen;
+	background-color: LightGreen;
+}
+
+

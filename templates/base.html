@@ -1,0 +1,48 @@
+<html>
+    <head>
+      {% if title %}
+      <link rel="stylesheet" href="/static/style.css" type="text/css">
+      <title>{{ title }} - My Notes Flask App</title>
+      {% else %}
+      <title>My Notes Flask App</title>
+      {% endif %}
+    </head>
+    <body>
+    	<div class="navigation">
+        <span class="menu"><a href="{{ url_for('home') }}">Home</a></span>
+        {% if current_user.is_authenticated %}
+        	<span class="menu"><a href="{{ url_for('notes') }}">All Notes</a></span>
+        	<span><a href="{{ url_for('add_note') }}">Add Note</a></span>
+        	<span><a href="{{ url_for('logout') }}">Logout</a></span>
+        {% else %}
+        	<span class="menu"><a href="{{ url_for('login') }}">Login</a></span>
+        	<span><a href="{{ url_for('register') }}">Register</a></span>
+        {% endif %}
+        </div>
+      	
+	<div class="contents">
+        {% block content %}{% endblock %}
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+ 
+        {% for message in messages %}
+            {% if "Error" not in message[1]: %}
+                <div class="alert alert-info">
+                <strong>{{ message[1] }}</strong>
+                </div>
+            {% endif %}
+ 
+            {% if "Error" in message[1]: %}
+                <div class="alert alert-warning">
+                {{ message[1] }}
+                </div>
+            {% endif %}
+        {% endfor %}
+            {% endif %}
+        {% endwith %}
+       </div> 
+        
+        
+    </body>
+</html>

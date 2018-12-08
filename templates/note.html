@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>{{title}}</h1>
+    <form action="" method="post" novalidate>
+        {{ form.csrf_token }}
+        <p>
+            {{ form.note.label }}<br>
+            {{ form.note(size=32) }}
+        </p>
+        <p>
+            {{ form.category.label }}<br>
+            {{ form.category(size=32) }}
+        </p>
+        <p>{{ form.submit(class="button") }}</p>
+    </form>
+
+ 
+
+</div></div></div>
+ 
+
+{% endblock %}
