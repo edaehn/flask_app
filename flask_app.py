@@ -13,6 +13,11 @@ app = Flask(__name__)
 login = LoginManager(app)
 login.login_view = 'login'
 
+app.config.update(dict(
+    SECRET_KEY="*********************",
+    WTF_CSRF_SECRET_KEY="*************************"
+))
+
 @app.teardown_request
 def remove_session(ex=None):
     session.remove()

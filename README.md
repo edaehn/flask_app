@@ -8,3 +8,6 @@ What is the difference? My Notes is very minimalistic, in CSS style, content and
 It contains user registration, login and notes creation forms. 
 With just two DB tables (note and category) linked together witha foreign key is what you 
 need to start with your prototype! No time to waste, happy coding!
+
+
+[Check the Demo at the pythonanywhere.com!](http://edaehn.pythonanywhere.com). 
